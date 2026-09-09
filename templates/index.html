@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ chatbot_title }}</title>
+    <style>
+        :root {
+            --bg: #07111f;
+            --panel: rgba(15, 28, 48, 0.82);
+            --panel-strong: #10213a;
+            --border: rgba(148, 163, 184, 0.18);
+            --text: #eef5ff;
+            --muted: #9eb0c8;
+            --accent: #6d5dfc;
+            --accent-2: #21d4fd;
+            --user: #244c9a;
+            --bot: #122943;
+            --shadow: 0 24px 70px rgba(0, 0, 0, 0.38);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at 10% 10%, rgba(109, 93, 252, 0.24), transparent 30%),
+                radial-gradient(circle at 90% 20%, rgba(33, 212, 253, 0.16), transparent 28%),
+                linear-gradient(145deg, #050b14, var(--bg));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .app {
+            width: min(1100px, 100%);
+            height: min(820px, 94vh);
+            min-height: 620px;
+            display: grid;
+            grid-template-columns: 270px 1fr;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            border-radius: 28px;
+            background: var(--panel);
+            backdrop-filter: blur(24px);
+            box-shadow: var(--shadow);
+        }
+
+        .sidebar {
+            padding: 28px 22px;
+            border-right: 1px solid var(--border);
+            background: rgba(7, 17, 31, 0.5);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 28px;
+        }
+
+        .logo {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            display: grid;
+            place-items: center;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            color: white;
+            box-shadow: 0 12px 30px rgba(109, 93, 252, 0.28);
+        }
+
+        .brand h1 {
+            margin: 0;
+            font-size: 16px;
+            line-height: 1.2;
+        }
+
+        .brand span {
+            display: block;
+            margin-top: 4px;
+            color: var(--muted);
+            font-size: 11px;
+        }
+
+        .topic-card {
+            padding: 18px;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.035);
+        }
+
+        .topic-card .label {
+            color: var(--muted);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+        }
+
+        .topic-card h2 {
+            margin: 8px 0 0;
+            font-size: 17px;
+            line-height: 1.35;
+        }
+
+        .side-note {
+            margin-top: auto;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .chat {
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .topbar {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .topbar h2 {
+            margin: 0;
+            font-size: 18px;
+        }
+
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            color: #a9f5c6;
+            font-size: 12px;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #42e58c;
+            box-shadow: 0 0 14px rgba(66, 229, 140, 0.8);
+        }
+
+        #messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 28px;
+            scroll-behavior: smooth;
+        }
+
+        .message {
+            display: flex;
+            margin-bottom: 18px;
+        }
+
+        .message.user { justify-content: flex-end; }
+
+        .bubble {
+            max-width: min(760px, 86%);
+            padding: 14px 17px;
+            border-radius: 18px;
+            line-height: 1.6;
+            font-size: 14px;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .bot .bubble {
+            background: var(--bot);
+            border: 1px solid var(--border);
+            border-top-left-radius: 5px;
+        }
+
+        .user .bubble {
+            background: linear-gradient(135deg, var(--user), #3b65bd);
+            border-top-right-radius: 5px;
+        }
+
+        .composer {
+            padding: 18px 22px 22px;
+            border-top: 1px solid var(--border);
+            background: rgba(5, 11, 20, 0.42);
+        }
+
+        .input-wrap {
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+            padding: 8px;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.045);
+        }
+
+        textarea {
+            flex: 1;
+            min-height: 46px;
+            max-height: 140px;
+            resize: none;
+            border: 0;
+            outline: 0;
+            background: transparent;
+            color: var(--text);
+            padding: 11px 12px;
+            font: inherit;
+            line-height: 1.4;
+        }
+
+        textarea::placeholder { color: #71839d; }
+
+        button {
+            border: 0;
+            cursor: pointer;
+            color: white;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            width: 46px;
+            height: 46px;
+            border-radius: 15px;
+            font-size: 18px;
+            transition: transform 0.2s ease, opacity 0.2s ease;
+        }
+
+        button:hover { transform: translateY(-2px); }
+        button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        .typing {
+            display: inline-flex;
+            gap: 5px;
+            padding: 13px 16px;
+            background: var(--bot);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+        }
+
+        .typing i {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #9eb0c8;
+            animation: blink 1.2s infinite;
+        }
+
+        .typing i:nth-child(2) { animation-delay: .15s; }
+        .typing i:nth-child(3) { animation-delay: .3s; }
+
+        @keyframes blink {
+            0%, 60%, 100% { opacity: .3; transform: translateY(0); }
+            30% { opacity: 1; transform: translateY(-3px); }
+        }
+
+        @media (max-width: 760px) {
+            body { padding: 0; }
+            .app {
+                height: 100vh;
+                min-height: 100vh;
+                border-radius: 0;
+                grid-template-columns: 1fr;
+            }
+            .sidebar { display: none; }
+            #messages { padding: 20px 16px; }
+            .topbar { padding: 17px 16px; }
+            .composer { padding: 14px 12px; }
+            .bubble { max-width: 92%; }
+        }
+    </style>
+</head>
+<body>
+    <main class="app">
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="logo">AI</div>
+                <div>
+                    <h1>{{ chatbot_title }}</h1>
+                    <span>Focused learning assistant</span>
+                </div>
+            </div>
+
+            <div class="topic-card">
+                <div class="label">Specialized domain</div>
+                <h2>{{ chatbot_title }}</h2>
+            </div>
+
+            <p class="side-note">
+                Ask study questions related to this chatbot's subject.
+                Off-topic questions are politely declined.
+            </p>
+        </aside>
+
+        <section class="chat">
+            <header class="topbar">
+                <h2>{{ chatbot_title }}</h2>
+                <div class="status"><span class="dot"></span> Online</div>
+            </header>
+
+            <div id="messages">
+                <div class="message bot">
+                    <div class="bubble">Hi! I’m {{ chatbot_title }}. Ask me a study question from my specialized subject.</div>
+                </div>
+            </div>
+
+            <form class="composer" id="chatForm">
+                <div class="input-wrap">
+                    <textarea id="messageInput" placeholder="Ask a study question..." rows="1" required></textarea>
+                    <button id="sendButton" type="submit" aria-label="Send">➤</button>
+                </div>
+            </form>
+        </section>
+    </main>
+
+    <script>
+        const form = document.getElementById("chatForm");
+        const input = document.getElementById("messageInput");
+        const messages = document.getElementById("messages");
+        const sendButton = document.getElementById("sendButton");
+
+        function addMessage(text, role) {
+            const wrapper = document.createElement("div");
+            wrapper.className = `message ${role}`;
+
+            const bubble = document.createElement("div");
+            bubble.className = "bubble";
+            bubble.textContent = text;
+
+            wrapper.appendChild(bubble);
+            messages.appendChild(wrapper);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        function addTyping() {
+            const wrapper = document.createElement("div");
+            wrapper.className = "message bot";
+            wrapper.id = "typing";
+
+            const typing = document.createElement("div");
+            typing.className = "typing";
+            typing.innerHTML = "<i></i><i></i><i></i>";
+
+            wrapper.appendChild(typing);
+            messages.appendChild(wrapper);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        function removeTyping() {
+            document.getElementById("typing")?.remove();
+        }
+
+        input.addEventListener("input", () => {
+            input.style.height = "auto";
+            input.style.height = Math.min(input.scrollHeight, 140) + "px";
+        });
+
+        form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            const message = input.value.trim();
+            if (!message || sendButton.disabled) return;
+
+            addMessage(message, "user");
+            input.value = "";
+            input.style.height = "auto";
+            sendButton.disabled = true;
+            addTyping();
+
+            try {
+                const response = await fetch("/api/chat", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ message })
+                });
+
+                const data = await response.json();
+                removeTyping();
+
+                if (!response.ok) {
+                    addMessage(data.error || "Something went wrong.", "bot");
+                } else {
+                    addMessage(data.answer, "bot");
+                }
+            } catch (error) {
+                removeTyping();
+                addMessage("Unable to connect to the chatbot server. Please try again.", "bot");
+            } finally {
+                sendButton.disabled = false;
+                input.focus();
+            }
+        });
+    </script>
+</body>
+</html>
